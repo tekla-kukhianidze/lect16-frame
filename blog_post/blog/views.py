@@ -70,4 +70,28 @@ class BlogPostListCreateView(APIView):
             return Response(serializer.validated_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class BlogPostDetailUpdateDeleteView(APIView):
+    def get(self, request, id):
+        book = BlogPost.objects.filter(id=id).first()
+        if not book:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = BlogPostSerializer(book)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def put(self, request, id):
+        serializer = BlogPostSerializer(data=request.data)
+        if serializer.is_valid():
+            book = BlogPost.objects.filter(id=id)
+            if not book:
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            BlogPost.objects.filter(id=id).update(**serializer.validated_data)
+            return Response(serializer.validated_data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        book = BlogPost.objects.filter(id=id).first()
+        if not book:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        book.deleted = True
+        book.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
